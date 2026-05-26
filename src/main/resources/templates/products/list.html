@@ -100,8 +100,9 @@
                         <td class="text-center text-muted small"
                             th:text="${#temporals.format(p.createdAt, 'yyyy-MM-dd')}"></td>
                         <td class="text-center" sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/products/{id}/edit(id=${p.id})}" class="btn btn-outline-warning btn-sm me-1">수정</a>
                             <form th:action="@{/products/{id}/delete(id=${p.id})}" method="post"
-                                  onsubmit="return confirm('삭제하시겠습니까?')">
+                                  onsubmit="return confirm('삭제하시겠습니까?')" class="d-inline">
                                 <button class="btn btn-outline-danger btn-sm">삭제</button>
                             </form>
                         </td>
@@ -129,7 +130,7 @@
     </nav>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bundle.min.js"></script>
 <footer class="text-center mt-5 py-3 text-muted border-top">
     <p th:text="${'실습 수행 일시: ' + #temporals.format(#temporals.createNow(), 'yyyy년 MM월 dd일 (E) a hh:mm:ss') + '  │  학번: 2171349  │  성명: 김선우'}"></p>
 </footer>
