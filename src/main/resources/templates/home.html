@@ -17,7 +17,6 @@
 </head>
 <body>
 
-<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark mb-4">
     <div class="container">
         <a class="navbar-brand" th:href="@{/home}">HanSung</a>
@@ -34,6 +33,9 @@
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin/dashboard}">관리자</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/user/password}">비밀번호 변경</a>
+                </li>
             </ul>
             <form th:action="@{/logout}" method="post" class="d-flex">
                 <button class="btn btn-outline-light btn-sm px-3">로그아웃</button>
@@ -43,19 +45,16 @@
 </nav>
 
 <div class="container">
-    <!-- Welcome Card -->
     <div class="welcome-card p-4 mb-4">
         <h4 class="fw-bold mb-1">환영합니다!</h4>
         <p class="mb-1 opacity-75" th:text="${username}"></p>
         <div class="mt-2">
-            <!-- 컨트롤러에서 ROLE_ 접두사를 제거한 문자열 목록을 전달받음 -->
             <span th:each="role : ${roles}"
                   class="badge bg-white text-dark badge-role me-1"
                   th:text="${role}"></span>
         </div>
     </div>
 
-    <!-- Quick Links -->
     <div class="row g-3">
         <div class="col-md-4">
             <div class="card stat-card p-4 h-100">
