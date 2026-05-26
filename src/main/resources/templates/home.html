@@ -45,6 +45,8 @@
 </nav>
 
 <div class="container">
+    <div th:if="${successMessage}" class="alert alert-success text-center fw-bold mb-3" role="alert" th:text="${successMessage}"></div>
+
     <div class="welcome-card p-4 mb-4">
         <h4 class="fw-bold mb-1">환영합니다!</h4>
         <p class="mb-1 opacity-75" th:text="${username}"></p>
