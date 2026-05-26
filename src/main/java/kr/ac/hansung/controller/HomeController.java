@@ -1,15 +1,27 @@
 package kr.ac.hansung.controller;
 
+import kr.ac.hansung.dto.PasswordChangeDto;
+import kr.ac.hansung.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
+
+    private final UserService userService;
 
     @GetMapping("/")
     public String root() {
@@ -20,12 +32,6 @@ public class HomeController {
     public String home(Authentication authentication, Model model) {
         model.addAttribute("username", authentication.getName());
 
-        // 로그인한 사용자의 권한 목록에서 화면에 보여줄 역할명만 추출한다.
-        // Spring Security 7은 ROLE_USER 같은 역할 외에 MFA(2단계 인증) 관련 권한도 함께 넣어두기 때문에
-        // "ROLE_" 로 시작하는 것만 골라내고, 앞의 "ROLE_" 접두사는 제거하여 화면에 전달한다.
-        // ex) 권한 목록: ["ROLE_USER", "ROLE_ADMIN", "MFA_FACTOR"]
-        //     → "ROLE_" 로 시작하는 것만 필터링: ["ROLE_USER", "ROLE_ADMIN"]
-        //     → "ROLE_" 제거: ["USER", "ADMIN"]
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(a -> a.startsWith("ROLE_"))
@@ -33,5 +39,43 @@ public class HomeController {
                 .toList();
         model.addAttribute("roles", roles);
         return "home";
+    }
+
+    @GetMapping("/user/password")
+    public String changePasswordForm(Model model) {
+        model.addAttribute("passwordChangeDto", new PasswordChangeDto());
+        return "user/password";
+    }
+
+    @PostMapping("/user/password")
+    public String changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @ModelAttribute("passwordChangeDto") PasswordChangeDto dto,
+            BindingResult bindingResult,
+            RedirectAttributes ra) {
+
+        if (dto.getCurrentPassword() == null || dto.getCurrentPassword().isBlank()) {
+            bindingResult.rejectValue("currentPassword", "required", "현재 비밀번호를 입력하세요");
+            return "user/password";
+        }
+        if (dto.getNewPassword() == null || dto.getNewPassword().length() < 8) {
+            bindingResult.rejectValue("newPassword", "size", "새 비밀번호는 8자 이상이어야 합니다");
+            return "user/password";
+        }
+
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            bindingResult.rejectValue("confirmPassword", "mismatch", "새 비밀번호가 일치하지 않습니다");
+            return "user/password";
+        }
+
+        try {
+            userService.changePassword(userDetails.getUsername(), dto.getCurrentPassword(), dto.getNewPassword());
+            ra.addFlashAttribute("successMessage", "비밀번호가 변경되었습니다");
+        } catch (IllegalArgumentException e) {
+            bindingResult.rejectValue("currentPassword", "wrong", e.getMessage());
+            return "user/password";
+        }
+
+        return "redirect:/home";
     }
 }
